@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 import com.example.tvshows.adapters.ShowsAdapter;
 import com.example.tvshows.model.TVShow;
 import com.example.tvshows.service.ShowsService;
+import com.google.gson.Gson;
 import com.wdullaer.swipeactionadapter.SwipeActionAdapter;
 import com.wdullaer.swipeactionadapter.SwipeDirection;
 
@@ -27,6 +29,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+
+import static android.content.Context.MODE_PRIVATE;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
@@ -87,6 +91,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
 class MySwipeListener implements SwipeActionAdapter.SwipeActionListener {
 
+    private static final String TAG = "MySwipeListener";
     Context context;
     SwipeActionAdapter adapter;
 
@@ -109,11 +114,14 @@ class MySwipeListener implements SwipeActionAdapter.SwipeActionListener {
 
     @Override
     public void onSwipe(int[] positionList, SwipeDirection[] directionList){
+
         for(int i=0;i<positionList.length;i++) {
             SwipeDirection direction = directionList[i];
             int position = positionList[i];
             String dir = "";
-
+            TVShow show = (TVShow) adapter.getItem(position);
+            addOrRemove (show);
+            Log.d(TAG, "Swiping "+show);
             switch (direction) {
                 case DIRECTION_FAR_LEFT:
                     dir = "Far left";
@@ -135,6 +143,30 @@ class MySwipeListener implements SwipeActionAdapter.SwipeActionListener {
             ).show();
             adapter.notifyDataSetChanged();
         }
-
     }
+
+    void addOrRemove (TVShow show){
+        SharedPreferences sharedPref = context.getSharedPreferences("shows", MODE_PRIVATE);
+        String savedShow = sharedPref.getString("ID" + show.getId(), "");
+        SharedPreferences.Editor editor = sharedPref.edit();
+        if (savedShow.isEmpty()) {
+            add (show, editor);
+        }else {
+            editor.remove("ID" + show.getId()).commit();
+            Toast.makeText(context,show + " removed from favorites", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    void add (TVShow show, SharedPreferences.Editor editor){
+
+        Gson gson = new Gson();
+        String json = gson.toJson(show);
+        editor.putString("ID" + show.getId(), json).commit();
+        Toast.makeText(
+                context,
+                show + " saved in favorites",
+                Toast.LENGTH_LONG
+        ).show();
+    }
+
 }
