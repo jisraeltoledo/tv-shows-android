@@ -2,8 +2,11 @@ package com.example.tvshows;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -14,7 +17,6 @@ import com.example.tvshows.service.ShowsService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -22,17 +24,12 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
-//    @Override
-//    protected void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_main);
-//    }
-    String TAG = "MainActivity";
-    ListView list;
-    ArrayList<TVShow> shows = new ArrayList<>();
-    ArrayAdapter arrayAdapter;
+    private String TAG = "MainActivity";
+    private ListView list;
+    private ArrayList<TVShow> shows = new ArrayList<>();
+    private ArrayAdapter arrayAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,9 +37,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         arrayAdapter = new ShowsAdapter(getApplicationContext(), shows);
         list = findViewById(R.id.list);
-
         list.setAdapter(arrayAdapter);
-        Log.d (TAG, "created");
+        list.setOnItemClickListener(this);
         getPosts();
     }
 
@@ -72,5 +68,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        Intent intent = new Intent(this, DetailActivity.class);
+        intent.putExtra("show", shows.get(i));
+        startActivity(intent);
     }
 }
