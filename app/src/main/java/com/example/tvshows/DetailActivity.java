@@ -43,22 +43,14 @@ public class DetailActivity extends AppCompatActivity {
         summary.loadDataWithBaseURL("", show.getSummary(), "text/html", "UTF-8", "");
 
         Button imdb_button = findViewById(R.id.imdb_button);
+        configureImdbBUtton (imdb_button, show);
 
-        if (show.getImdb() == null || show.getImdb().isEmpty()){
-            imdb_button.setVisibility(View.INVISIBLE);
-        }
-        else{
-            imdb_button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent i = new Intent(Intent.ACTION_VIEW);
-                    i.setData(Uri.parse("https://www.imdb.com/title/"+show.getImdb()));
-                    startActivity(i);
-                }
-            });
-        }
 
         ImageView favorites = findViewById(R.id.action_favorites);
+        configureFavButton (favorites, show);
+    }
+
+    private void configureFavButton(ImageView favorites, TVShow show) {
         SharedPreferences sharedPref = getSharedPreferences("shows", MODE_PRIVATE);
         String json = sharedPref.getString("ID" + show.getId(), "");
         SharedPreferences.Editor editor = sharedPref.edit();
@@ -85,13 +77,27 @@ public class DetailActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View view) {
                     editor.remove("ID" + show.getId()).commit();
-                    Toast.makeText(getApplicationContext(),show + " removed from favorites", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), show + " removed from favorites", Toast.LENGTH_SHORT).show();
                     favorites.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_save));
                 }
             });
 
         }
+    }
 
-
+    private void configureImdbBUtton(Button imdb_button, TVShow show) {
+        if (show.getImdb() == null || show.getImdb().isEmpty()){
+            imdb_button.setVisibility(View.INVISIBLE);
+        }
+        else{
+            imdb_button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent i = new Intent(Intent.ACTION_VIEW);
+                    i.setData(Uri.parse("https://www.imdb.com/title/"+show.getImdb()));
+                    startActivity(i);
+                }
+            });
+        }
     }
 }
