@@ -1,6 +1,5 @@
 package com.example.tvshows;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
@@ -17,12 +16,14 @@ import android.widget.Toast;
 import com.example.tvshows.adapters.ShowsAdapter;
 import com.example.tvshows.model.TVShow;
 import com.example.tvshows.service.ShowsService;
+import com.google.android.material.bottomnavigation.BottomNavigationItemView;
 import com.google.gson.Gson;
 import com.wdullaer.swipeactionadapter.SwipeActionAdapter;
 import com.wdullaer.swipeactionadapter.SwipeDirection;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -32,7 +33,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 import static android.content.Context.MODE_PRIVATE;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnClickListener {
 
     private String TAG = "MainActivity";
     private ListView list;
@@ -50,11 +51,39 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         list.setAdapter(swipeAdapter);
         list.setOnItemClickListener(this);
         swipeAdapter.setSwipeActionListener(new MySwipeListener(this, swipeAdapter));
-        getPosts();
+        BottomNavigationItemView favoritesMenu = findViewById(R.id.action_favorites);
+        favoritesMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getFromLocalStorage();
+            }
+        });
+        BottomNavigationItemView showsMenu = findViewById(R.id.action_shows);
+        showsMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getFromAPI();
+            }
+        });
+
+        getFromAPI();
     }
 
-    private void getPosts() {
+    private void getFromLocalStorage () {
+        SharedPreferences sharedPref = getSharedPreferences("shows", MODE_PRIVATE);
+        Gson gson = new Gson();
+        Map<String, ?> favorites = sharedPref.getAll();
+        shows.clear();
+        for (String key : favorites.keySet()){
+            String json = (String) favorites.get(key);
+            TVShow show = gson.fromJson(json, TVShow.class);
+            shows.add (show);
+        }
+        arrayAdapter.notifyDataSetChanged();
+    }
 
+    private void getFromAPI() {
+        shows.clear();
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("http://api.tvmaze.com")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -86,6 +115,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         Intent intent = new Intent(this, DetailActivity.class);
         intent.putExtra("show", shows.get(i));
         startActivity(intent);
+    }
+
+    @Override
+    public void onClick(View view) {
+
     }
 }
 
@@ -121,26 +155,6 @@ class MySwipeListener implements SwipeActionAdapter.SwipeActionListener {
             String dir = "";
             TVShow show = (TVShow) adapter.getItem(position);
             addOrRemove (show);
-            Log.d(TAG, "Swiping "+show);
-            switch (direction) {
-                case DIRECTION_FAR_LEFT:
-                    dir = "Far left";
-                    break;
-                case DIRECTION_NORMAL_LEFT:
-                    dir = "Left";
-                    break;
-                case DIRECTION_FAR_RIGHT:
-                    dir = "Far right";
-                    break;
-                case DIRECTION_NORMAL_RIGHT:
-                    dir = "Right";
-                    break;
-            }
-            Toast.makeText(
-                    context,
-                    dir + " swipe Action triggered on " + adapter.getItem(position),
-                    Toast.LENGTH_SHORT
-            ).show();
             adapter.notifyDataSetChanged();
         }
     }
@@ -153,7 +167,7 @@ class MySwipeListener implements SwipeActionAdapter.SwipeActionListener {
             add (show, editor);
         }else {
             editor.remove("ID" + show.getId()).commit();
-            Toast.makeText(context,show + " removed from favorites", Toast.LENGTH_LONG).show();
+            Toast.makeText(context,show + " removed from favorites", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -165,7 +179,7 @@ class MySwipeListener implements SwipeActionAdapter.SwipeActionListener {
         Toast.makeText(
                 context,
                 show + " saved in favorites",
-                Toast.LENGTH_LONG
+                Toast.LENGTH_SHORT
         ).show();
     }
 

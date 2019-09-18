@@ -5,7 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_schedules"
+        android:id="@+id/action_shows"
         android:enabled="true"
         android:icon="@drawable/ic_shows"
         android:title="@string/text_schedules"
