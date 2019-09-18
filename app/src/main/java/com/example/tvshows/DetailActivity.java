@@ -1,8 +1,11 @@
 package com.example.tvshows;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,9 +14,11 @@ import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.example.tvshows.model.TVShow;
+import com.google.gson.Gson;
 
 import org.w3c.dom.Text;
 
@@ -52,5 +57,41 @@ public class DetailActivity extends AppCompatActivity {
                 }
             });
         }
+
+        ImageView favorites = findViewById(R.id.action_favorites);
+        SharedPreferences sharedPref = getSharedPreferences("shows", MODE_PRIVATE);
+        String json = sharedPref.getString("ID" + show.getId(), "");
+        SharedPreferences.Editor editor = sharedPref.edit();
+
+        if (json.isEmpty()){
+            favorites.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_save));
+            favorites.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Gson gson = new Gson();
+                    String json = gson.toJson(show);
+                    editor.putString("ID" + show.getId(), json).commit();
+                    Toast.makeText(
+                            getApplicationContext(),
+                            show + " saved in favorites",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                    favorites.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_favorites));
+                }
+            });
+        }
+        else {
+            favorites.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    editor.remove("ID" + show.getId()).commit();
+                    Toast.makeText(getApplicationContext(),show + " removed from favorites", Toast.LENGTH_SHORT).show();
+                    favorites.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(), R.drawable.ic_save));
+                }
+            });
+
+        }
+
+
     }
 }
