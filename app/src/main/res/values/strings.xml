@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">TVShows</string>
+    <string name="text_schedules">Shows</string>
+    <string name="text_favorites">Favorites</string>
 </resources>
